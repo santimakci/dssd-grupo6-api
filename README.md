@@ -36,38 +36,25 @@ $ npm install
 
 ```bash
 # development
-$ npm run start
+$ docker-compose up
 
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
 ```
 
-## Test
+## Enviorment variables
 
 ```bash
-# unit tests
-$ npm run test
+HOST=db
+POSTGRES_DB=
+POSTGRES_USER=
+POSTGRES_PASSWORD=
 
-# e2e tests
-$ npm run test:e2e
+ALLOWED_ORIGIN=*
 
-# test coverage
-$ npm run test:cov
+
+# JWT CONFIG
+
+JWT_SECRET=
+APP_JWT_SECRET=
+JWT_EXPIRES_IN=
+
 ```
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](LICENSE).

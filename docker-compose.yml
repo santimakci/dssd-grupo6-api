@@ -1,0 +1,38 @@
+version: '3'
+
+services:
+  sannar-api:
+    build:
+      context: .
+      dockerfile: Docker/Dockerfile
+    restart: always
+    command: npm run start:debug
+    container_name: sannar-api
+    ports:
+      - '3000:3000'
+      - '9229:9229'
+    volumes:
+      - .:/usr/src/app
+    networks:
+      - main
+    depends_on:
+      - db
+
+  db:
+    image: postgres:13
+    container_name: sannar-db
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - main
+
+networks:
+  main:
+    driver: bridge
+
+volumes:
+  postgres_data:

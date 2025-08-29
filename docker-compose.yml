@@ -1,13 +1,11 @@
-version: '3'
-
 services:
-  sannar-api:
+  backend-api:
     build:
       context: .
       dockerfile: Docker/Dockerfile
     restart: always
     command: npm run start:debug
-    container_name: sannar-api
+    container_name: backend-api
     ports:
       - '3000:3000'
       - '9229:9229'
@@ -19,8 +17,8 @@ services:
       - db
 
   db:
-    image: postgres:13
-    container_name: sannar-db
+    image: postgres:16
+    container_name: backend-db
     restart: unless-stopped
     env_file: .env
     ports:

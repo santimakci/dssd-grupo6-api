@@ -2,10 +2,8 @@ import {
   Body,
   ClassSerializerInterceptor,
   Controller,
-  Delete,
   Get,
   Param,
-  Patch,
   Post,
   Query,
   UseGuards,
@@ -23,8 +21,8 @@ import { ApiTags } from '@nestjs/swagger';
 
 @Controller('users')
 @ApiTags('Users')
-//@UseGuards(AuthenticationGuard)
-//@UseGuards(AdminGuard)
+@UseGuards(AuthenticationGuard)
+@UseGuards(AdminGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 

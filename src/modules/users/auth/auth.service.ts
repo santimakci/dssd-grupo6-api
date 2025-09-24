@@ -16,30 +16,9 @@ export class AuthService {
     private configService: ConfigService,
   ) {}
 
-  async login(email: string, password: string) {
-    const user = await this.findUserByEmailWithPassword(email);
-    // const isMatch = await bcrypt.compare(password, user.password);
-    const isMatch = await argon2.verify(user.password, password);
-
-    if (!isMatch) {
-      throw new BadRequestException('Invalid password or user');
-    }
-    if (!user) {
-      throw new BadRequestException('User not found');
-    }
-    if (!user.roles.includes(UserRole.USER)) {
-      throw new BadRequestException('User is not app user');
-    }
-
-    const token = this.getAppToken(user);
-    const result = this.sendToken(user, token);
-    return result;
-  }
-
   async loginAdmin(email: string, password: string) {
     const user = await this.findUserByEmailWithPassword(email);
     if (!user) throw new BadRequestException('User not found');
-    // const isMatch = await bcrypt.compare(password, user.password);
     const isMatch = await argon2.verify(user.password, password);
     if (!isMatch) throw new BadRequestException('Invalid password or user');
     if (!user.roles.includes(UserRole.ADMIN)) {
@@ -56,16 +35,6 @@ export class AuthService {
       where: {
         email,
       },
-    });
-  }
-
-  getAppToken(user: User) {
-    const payload = {
-      email: user.email,
-      id: user.id,
-    };
-    return this.jwtService.sign(payload, {
-      secret: process.env.APP_JWT_SECRET,
     });
   }
 

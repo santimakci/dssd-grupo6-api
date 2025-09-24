@@ -40,7 +40,9 @@ $ docker-compose up
 
 ```
 
-## Enviorment variables
+## Enviornment variables
+
+### It should be in `.env` file in root's project
 
 ```bash
 HOST=db
@@ -54,7 +56,6 @@ ALLOWED_ORIGIN=*
 # JWT CONFIG
 
 JWT_SECRET=
-APP_JWT_SECRET=
 JWT_EXPIRES_IN=
 
 ```

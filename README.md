@@ -29,6 +29,7 @@
 ## Índice
 
 - [Endpoints de Autenticación](docs/endpoints-auth.md)
+- [Swagger (API Docs)](docs/swagger.md)
 
 ## Installation
 
@@ -49,6 +50,7 @@ $ docker-compose up
 ### It should be in `.env` file in root's project
 
 ```bash
+ENVIRONMENT=development
 HOST=db
 POSTGRES_DB=
 POSTGRES_USER=

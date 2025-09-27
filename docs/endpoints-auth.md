@@ -1,6 +1,6 @@
 ## Endpoints de Autenticación
 
-Base URL (desarrollo): `http://localhost:3000`
+Base URL (desarrollo): `http://localhost:3000/api/v1`
 
 ### POST `/auth/admin/login`
 
@@ -36,7 +36,7 @@ Base URL (desarrollo): `http://localhost:3000`
 - **cURL**:
   ```bash
   curl -sS -X POST \
-    "http://localhost:3000/auth/admin/login" \
+    "http://localhost:3000/api/v1/auth/admin/login" \
     -H "Content-Type: application/json" \
     -d '{"email":"admin@ejemplo.com","password":"tu-contraseña"}'
   ```
@@ -73,7 +73,7 @@ Base URL (desarrollo): `http://localhost:3000`
 - **cURL**:
   ```bash
   curl -sS -X POST \
-    "http://localhost:3000/auth/bonita/login" \
+    "http://localhost:3000/api/v1/auth/bonita/login" \
     -H "Content-Type: application/json" \
     -d '{"email":"usuario@ejemplo.com","password":"tu-contraseña"}'
   ```

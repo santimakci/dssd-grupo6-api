@@ -1,31 +1,41 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import {
-  DocumentBuilder,
-  SwaggerDocumentOptions,
-  SwaggerModule,
-} from '@nestjs/swagger';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { ConfigService } from '@nestjs/config';
+import { Environment } from './common/enums/enviorment.enum';
+import { VersioningType } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const config = app.get(ConfigService);
 
   app.setGlobalPrefix('api');
-
-  const port = 3000;
-  app.enableCors({
-    origin: '*',
+  app.enableVersioning({
+    type: VersioningType.URI,
+    defaultVersion: '1',
   });
 
-  const options = new DocumentBuilder()
-    .setTitle('Backend API')
-    .setDescription('Backend API Documentation')
-    .setVersion('1.0')
-    .addServer('http://localhost:3000/', 'Local environment')
-    .addBearerAuth()
-    .build();
+  const port = config.get('PORT') || 3000;
 
-  const document = SwaggerModule.createDocument(app, options);
-  SwaggerModule.setup('api-docs', app, document);
+  app.enableCors({
+    origin: config.get('ALLOWED_ORIGIN') || '*',
+  });
+  const environment = config.get('ENVIRONMENT') || Environment.DEVELOPMENT;
+  // Swagger configuration only for development environment
+  if (environment === Environment.DEVELOPMENT) {
+    const options = new DocumentBuilder()
+      .setTitle('Backend API')
+      .setDescription('Backend API Documentation')
+      .setVersion('1.0')
+      .addServer('http://localhost:3000/', 'Local environment')
+      .addBearerAuth()
+      .build();
+
+    const document = SwaggerModule.createDocument(app, options);
+    SwaggerModule.setup('api-docs', app, document);
+  }
+
+  // Loggins incoming requests
   app.use((req, res, next) => {
     const start = Date.now();
     res.on('finish', () => {

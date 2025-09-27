@@ -9,4 +9,9 @@ export class AuthController {
   loginAdmin(@Body() body: { email: string; password: string }) {
     return this.authService.loginAdmin(body.email, body.password);
   }
+
+  @Post('bonita/login')
+  loginBonita(@Body() body: { email: string; password: string }) {
+    return this.authService.loginBonita(body.email, body.password);
+  }
 }

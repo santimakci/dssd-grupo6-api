@@ -8,6 +8,7 @@ import { Module } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from 'src/entities/user.entity';
+import { BonitaApiModule } from 'src/common/integrations/bonita-api/bonita.module';
 
 @Module({
   controllers: [AuthController],
@@ -23,6 +24,7 @@ import { User } from 'src/entities/user.entity';
     }),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     TypeOrmModule.forFeature([User]),
+    BonitaApiModule,
   ],
   providers: [AuthService, JwtStrategy, AdminJwtStrategy],
 })

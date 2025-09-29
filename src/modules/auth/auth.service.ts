@@ -15,7 +15,6 @@ export class AuthService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private configService: ConfigService,
-    private readonly bonitaApiService: BonitaApiService,
   ) {}
 
   async loginAdmin(email: string, password: string) {
@@ -29,10 +28,6 @@ export class AuthService {
     const token = this.getAdminToken(user);
     const result = this.sendToken(user, token);
     return result;
-  }
-
-  async loginBonita(email: string, password: string) {
-    return this.bonitaApiService.loginBonita();
   }
 
   private async findUserByEmailWithPassword(email: string) {

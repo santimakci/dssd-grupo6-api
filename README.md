@@ -26,6 +26,11 @@
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
+## Índice
+
+- [Endpoints de Autenticación](docs/endpoints-auth.md)
+- [Swagger (API Docs)](docs/swagger.md)
+
 ## Installation
 
 ```bash
@@ -45,6 +50,7 @@ $ docker-compose up
 ### It should be in `.env` file in root's project
 
 ```bash
+ENVIRONMENT=development
 HOST=db
 POSTGRES_DB=
 POSTGRES_USER=
@@ -57,5 +63,16 @@ ALLOWED_ORIGIN=*
 
 JWT_SECRET=
 JWT_EXPIRES_IN=
+
+### LINUX MAC
+BONITA_API_URL=http://172.17.0.1:8080/bonita
+
+### WINDOWS
+BONITA_API_URL=http://host.docker.internal:8080/bonita
+
+
+
+BONITA_API_USERNAME=walter.bates
+BONITA_API_PASSWORD=bpm
 
 ```

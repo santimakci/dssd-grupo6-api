@@ -6,6 +6,7 @@ import { User } from 'src/entities/user.entity';
 import { UserRole } from 'src/common/enums/user-role.enum';
 import { ConfigService } from '@nestjs/config';
 import * as argon2 from 'argon2';
+import { BonitaApiService } from 'src/common/integrations/bonita-api/bonita-api.service';
 
 @Injectable()
 export class AuthService {

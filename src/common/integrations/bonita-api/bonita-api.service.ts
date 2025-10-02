@@ -162,7 +162,6 @@ export class BonitaApiService {
         }),
       );
     } catch (error) {
-      console.error('Error deleting instance in Bonita API:', error);
       throwHttpByStatus(error, 'Unknown error occurred');
     }
   }

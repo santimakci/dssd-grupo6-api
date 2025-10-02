@@ -57,6 +57,7 @@ export class ProjectsService {
   async createProjectInBonita(body: CreateProjectDto) {
     try {
       const cookie = await this.bonitaApiService.loginBonita();
+      /* TODO: desharcodear el nombre del proceso ponerlo en el .env o en un enum o en la base de datos */
       const processId = await this.bonitaApiService.getProcessIdByName(
         'Proceso de creación de proyecto',
         cookie,
@@ -69,29 +70,29 @@ export class ProjectsService {
         processId,
         cookie,
       );
-
-      /*    const setVariablePromises = Object.entries(body).map(([key, value]) => {
-        const javaClassName = parseTsClassToJavaClass(typeof value);
-        return this.bonitaApiService.setVariableByCaseId(
+      try {
+        for (const [key, value] of Object.entries(body)) {
+          if (Array.isArray(value)) {
+            body[key] = JSON.stringify(value);
+          }
+          const javaClassName = parseTsClassToJavaClass(typeof body[key]);
+          await this.bonitaApiService.setVariableByCaseId(
+            processInstanceId,
+            key,
+            body[key],
+            javaClassName,
+            cookie,
+          );
+        }
+      } catch (error) {
+        await this.bonitaApiService.deleteInstanceById(
           processInstanceId,
-          key,
-          value,
-          javaClassName,
           cookie,
         );
-      });
-
-      try {
-        await Promise.all(setVariablePromises);
-      } catch (error) {
-            await this.bonitaApiService.deleteInstanceById(
-          processInstanceId,
-          cookie,
-        ); 
         throw new BadRequestException(
           'Error setting process variables: ' + (error.message || error),
         );
-      } */
+      }
       return { message: 'Bonita process initiated', caseId: processInstanceId };
     } catch (error) {
       throw new BadRequestException(error.message || 'Unknown error occurred');

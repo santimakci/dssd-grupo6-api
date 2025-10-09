@@ -37,3 +37,9 @@ lerna-debug.log*
 # environment
 
 .env
+
+# instructions for AI.
+.github
+
+# this is something I use for different workspaces (Peacock)
+.vscode

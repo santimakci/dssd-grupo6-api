@@ -5,8 +5,6 @@ import { SearchUserPaginatorDto } from './dto/search-paginator.dto';
 import { ListPaginatorDto } from './dto/list-paginator.dto';
 import * as bcrypt from 'bcrypt';
 
-import * as argon2 from 'argon2';
-
 @Injectable()
 export class UsersService {
   constructor(private readonly userRepository: UsersRepository) {}
@@ -16,16 +14,16 @@ export class UsersService {
       createUserDto.email,
     );
     if (existUser) throw new BadRequestException('El usuario ya existe');
-    const password = createUserDto.document;
-    /*  const hash = await this.generatePassword(password); */
-    const hash = await argon2.hash(password);
-    /* 
-    const saltOrRounds = 10;
-    const hash = await bcrypt.hash(password, saltOrRounds); */
+    let hash: string;
+    try {
+      hash = await this.generatePassword(createUserDto.password);
+    } catch (error) {
+      console.error('Error generating password hash', error);
+      throw new BadRequestException('Error al generar la contraseña');
+    }
     const user = await this.userRepository.create({
-      password: hash,
-      roles: createUserDto.role,
       ...createUserDto,
+      password: hash,
     });
 
     return user;
@@ -74,16 +72,14 @@ export class UsersService {
     const hash = await this.generatePassword(password);
     return this.userRepository.update(id, { password: hash });
   }
-
   private async generatePassword(password: string) {
     try {
-      const numberOfSaltRounds = 10;
-      // const salt = await bcrypt.genSalt(numberOfSaltRounds);
-      const hash = bcrypt.hashSync(password, numberOfSaltRounds);
+      const numberOfSaltRounds = 5;
+      const hash = await bcrypt.hash(password, numberOfSaltRounds);
       return hash;
     } catch (error) {
-      console.log(error);
-      throw new BadRequestException('Error generating password');
+      console.error('Error generating password hash', error);
+      throw new BadRequestException('Error al generar la contraseña');
     }
   }
 }

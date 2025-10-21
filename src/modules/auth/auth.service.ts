@@ -5,8 +5,8 @@ import { Repository } from 'typeorm';
 import { User } from 'src/entities/user.entity';
 import { UserRole } from 'src/common/enums/user-role.enum';
 import { ConfigService } from '@nestjs/config';
-import * as argon2 from 'argon2';
 import { BonitaApiService } from 'src/common/integrations/bonita-api/bonita-api.service';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
@@ -20,7 +20,7 @@ export class AuthService {
   async loginAdmin(email: string, password: string) {
     const user = await this.findUserByEmailWithPassword(email);
     if (!user) throw new BadRequestException('User not found');
-    const isMatch = await argon2.verify(user.password, password);
+    const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) throw new BadRequestException('Invalid password or user');
     if (!user.roles.includes(UserRole.ADMIN)) {
       throw new BadRequestException('User is not admin');

@@ -9,6 +9,7 @@ import { config as typeOrmConfig } from './config/db.config';
 import { AuthModule } from './modules/auth/auth.module';
 import { ProjectsModule } from './modules/projects/projects.module';
 import { OngsModule } from './modules/ongs/ongs.module';
+import { TasksModule } from './modules/tasks/tasks.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { OngsModule } from './modules/ongs/ongs.module';
     AuthModule,
     ProjectsModule,
     OngsModule,
+    TasksModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -6,14 +6,18 @@ export class CreateUserDto {
   @Expose()
   @IsNotEmpty()
   email: string;
+
   @Expose()
   firstName: string;
+
   @Expose()
   lastName: string;
+
   @Expose()
   @IsNotEmpty()
-  document: string;
+  password: string;
+
   @Expose()
   @IsNotEmpty()
-  role: number[];
+  roles: number[];
 }

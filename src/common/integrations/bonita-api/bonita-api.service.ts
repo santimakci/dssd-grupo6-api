@@ -4,6 +4,8 @@ import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
 import { ListBonitaProcessesDto } from './dto/list-processes.dto';
 import { throwHttpByStatus } from 'src/common/helpers/http-error-mapper';
+import { ListTasksCloudDto } from './dto/list-tasks.dto';
+import { LoginDto } from 'src/modules/auth/dto/login.dto';
 
 @Injectable()
 export class BonitaApiService {
@@ -180,5 +182,36 @@ export class BonitaApiService {
       throw new InternalServerErrorException('Bonita API token not found');
     }
     return tokenCookie.split(';')[0].split('=')[1];
+  }
+
+  /* CUSTOM ENDPOINTS  */
+
+  async listTasksFromCloud(
+    cookie: string[],
+    page: number,
+    limit: number,
+    loginDto: LoginDto,
+  ): Promise<ListTasksCloudDto[]> {
+    const apiToken = this.parseApiToken(cookie);
+    try {
+      return firstValueFrom(
+        this.httpService.post<ListTasksCloudDto[]>(
+          `${this.apiUrl}/API/extension/projects?page=${page}&limit=${limit}`,
+          loginDto,
+          {
+            headers: {
+              'X-Bonita-API-Token': apiToken,
+
+              Cookie: cookie,
+            },
+          },
+        ),
+      ).then((response) => {
+        return response.data;
+      });
+    } catch (error) {
+      console.error('Error listing tasks from Bonita API:', error);
+      throwHttpByStatus(error, 'Unknown error occurred');
+    }
   }
 }

@@ -29,6 +29,7 @@
 ## Índice
 
 - [Endpoints de Autenticación](docs/endpoints-auth.md)
+- [Endpoints de Tasks (Tareas)](docs/endpoints-tasks.md)
 - [Swagger (API Docs)](docs/swagger.md)
 
 ## Installation
@@ -74,5 +75,9 @@ BONITA_API_URL=http://host.docker.internal:8080/bonita
 
 BONITA_API_USERNAME=walter.bates
 BONITA_API_PASSWORD=bpm
+
+
+ADMIN_CLOUD_EMAIL=userCloud
+ADMIN_CLOUD_PASSWORD=passCloud
 
 ```

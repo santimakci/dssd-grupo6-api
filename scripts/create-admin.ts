@@ -12,10 +12,9 @@ async function bootstrap() {
 
   const args = process.argv.slice(2);
   const email = args[0] || 'admin@example.com';
-  const password = args[1] || 'password';
   const firstName = args[2] || 'Admin';
   const lastName = args[3] || 'User';
-  const document = args[4] || '00000000';
+  const password = args[4] || 'admin123';
 
   try {
     const dto = {
@@ -23,11 +22,11 @@ async function bootstrap() {
       firstName,
       lastName,
       document,
-      role: [1],
+      password,
+      roles: [1],
     };
-    // UsersService.create uses the document as the default password and hashes it.
-    // So we temporarily set dto.document to the provided password when creating.
-    dto.document = password;
+    // UsersService.create uses the password as the default password and hashes it.
+    // So we temporarily set dto.password to the provided password when creating.
 
     const user = await usersService.create(dto as any);
     console.log('Admin user created:', user);

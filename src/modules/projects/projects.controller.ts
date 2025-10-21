@@ -1,11 +1,13 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
 import { ApiTags } from '@nestjs/swagger';
 import { QueryPaginationDto } from 'src/common/dtos/pagination/query-pagination.dto';
 import { CreateProjectDto } from './dtos/create-project.dto';
+import { AuthenticationGuard } from 'src/guards/authentication.guard';
 
 @ApiTags('projects')
 @Controller('projects')
+@UseGuards(AuthenticationGuard)
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 

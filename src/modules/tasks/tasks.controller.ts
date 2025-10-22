@@ -1,7 +1,7 @@
-import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards, Version } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { QueryPaginationDto } from 'src/common/dtos/pagination/query-pagination.dto';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthenticationGuard } from 'src/guards/authentication.guard';
 
 @ApiBearerAuth('jwt')
@@ -11,6 +11,20 @@ import { AuthenticationGuard } from 'src/guards/authentication.guard';
 export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
 
+  @ApiOperation({
+    summary: 'Lista de tareas paginadas local',
+  })
+  @Version('1')
+  @Get()
+  findPaginatedLocal(@Query() query: QueryPaginationDto) {
+    return this.tasksService.findPaginated(query);
+  }
+
+  @ApiOperation({
+    summary:
+      'Es v2 para cuando tengas que listar las tareas pasando por Bonita',
+  })
+  @Version('2')
   @Get()
   findPaginated(@Query() query: QueryPaginationDto) {
     return this.tasksService.findPaginated(query);

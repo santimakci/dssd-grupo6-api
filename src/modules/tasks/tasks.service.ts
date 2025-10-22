@@ -3,12 +3,14 @@ import { ConfigService } from '@nestjs/config';
 import { QueryPaginationDto } from 'src/common/dtos/pagination/query-pagination.dto';
 import { BonitaApiService } from 'src/common/integrations/bonita-api/bonita-api.service';
 import { LoginDto } from '../auth/dto/login.dto';
+import { TasksRepository } from 'src/repositories/tasks.repository';
 
 @Injectable()
 export class TasksService {
   constructor(
     private readonly bonitaApiService: BonitaApiService,
     private readonly configService: ConfigService,
+    private readonly taskRepository: TasksRepository,
   ) {}
 
   async findPaginated(query: QueryPaginationDto) {

@@ -5,7 +5,6 @@ import { ProjectsRepository } from 'src/repositories/projects.repository';
 import { CreateProjectDto } from './dtos/create-project.dto';
 import { QueryPaginationDto } from 'src/common/dtos/pagination/query-pagination.dto';
 import { TasksRepository } from 'src/repositories/tasks.repository';
-import { OngsRepository } from 'src/repositories/ongs.repository';
 import { OngsService } from '../ongs/ongs.service';
 
 @Injectable()

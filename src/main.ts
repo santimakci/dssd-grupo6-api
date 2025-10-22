@@ -28,7 +28,17 @@ async function bootstrap() {
       .setDescription('Backend API Documentation')
       .setVersion('1.0')
       .addServer('http://localhost:3000/', 'Local environment')
-      .addBearerAuth()
+      .addBearerAuth(
+        {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+          name: 'JWT',
+          description: 'Enter JWT token',
+          in: 'header',
+        },
+        'jwt',
+      )
       .build();
 
     const document = SwaggerModule.createDocument(app, options);

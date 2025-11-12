@@ -29,12 +29,19 @@ export class ProjectsService {
       country: body.country,
       ongId: ong.id,
     });
-    const tasks = body.tasks.map((task) => ({
+    const response = await this.createProjectInBonita({
+      ...body,
+      projectId: project.id,
+    });
+    project.caseId = response.caseId;
+    await this.projectsRepository.save(project);
+
+    /* const tasks = body.tasks.map((task) => ({
       ...task,
       projectId: project.id,
-    }));
-    await this.tasksRepository.bulkSave(tasks);
-    await this.createProjectInBonita(body);
+    })); */
+    //await this.tasksRepository.bulkSave(tasks);
+
     return project;
   }
 
@@ -53,7 +60,9 @@ export class ProjectsService {
     };
   }
 
-  async createProjectInBonita(body: CreateProjectDto) {
+  async createProjectInBonita(
+    body: CreateProjectDto & { projectId: string },
+  ): Promise<{ message: string; caseId: number }> {
     try {
       const cookie = await this.bonitaApiService.loginBonita();
       /* TODO: desharcodear el nombre del proceso ponerlo en el .env o en un enum o en la base de datos */
@@ -69,6 +78,7 @@ export class ProjectsService {
         processId,
         cookie,
       );
+      // Esto setea todas las variables en la instancia
       try {
         for (const [key, value] of Object.entries(body)) {
           if (Array.isArray(value)) {

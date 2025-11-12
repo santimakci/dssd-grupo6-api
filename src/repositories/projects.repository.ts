@@ -10,6 +10,10 @@ export class ProjectsRepository {
     private readonly projectsRepository: Repository<Project>,
   ) {}
 
+  create(data: Partial<Project>) {
+    return this.projectsRepository.create(data);
+  }
+
   save(data: Partial<Project>) {
     return this.projectsRepository.save(data);
   }

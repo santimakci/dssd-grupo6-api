@@ -34,4 +34,10 @@ export class Project extends Base {
 
   @ManyToOne(() => Ong, (ong) => ong.projects)
   ong: Ong;
+
+  @Column({
+    comment: 'Id de instancia de bonita',
+    nullable: true,
+  })
+  caseId: number;
 }

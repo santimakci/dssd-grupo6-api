@@ -191,17 +191,20 @@ export class BonitaApiService {
     page: number,
     limit: number,
     loginDto: LoginDto,
+    projectId: string,
   ): Promise<ListTasksCloudDto[]> {
     const apiToken = this.parseApiToken(cookie);
+    console.log(
+      `${this.apiUrl}/API/extension/projects?page=${page}&limit=${limit}&projectId=${projectId}`,
+    );
     try {
       return firstValueFrom(
         this.httpService.post<ListTasksCloudDto[]>(
-          `${this.apiUrl}/API/extension/projects?page=${page}&limit=${limit}`,
+          `${this.apiUrl}/API/extension/projects?page=${page}&limit=${limit}&projectId=${projectId}`,
           loginDto,
           {
             headers: {
               'X-Bonita-API-Token': apiToken,
-
               Cookie: cookie,
             },
           },

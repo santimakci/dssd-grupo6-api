@@ -1,11 +1,11 @@
 export interface ListTasksCloudDto {
-  data: Tasks[];
+  data: Task[];
   total: number;
   page: number;
   limit: number;
 }
 
-export interface Tasks {
+export interface Task {
   id: string;
   createdAt: Date;
   updatedAt: Date;
@@ -16,9 +16,9 @@ export interface Tasks {
   isActive: boolean;
   name: string;
   description: string;
-  projectName: string;
-  ongName: string;
-  isTaken: boolean;
+  projectId: string;
+  collaboratorId: null;
+  isFinished: boolean;
   startDate: Date;
   endDate: Date;
 }

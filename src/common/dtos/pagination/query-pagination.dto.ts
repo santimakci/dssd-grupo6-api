@@ -21,4 +21,10 @@ export class QueryPaginationDto {
   })
   @IsOptional()
   search?: string;
+
+  @ApiPropertyOptional({
+    description: 'Project ID',
+  })
+  @IsOptional()
+  projectId: string;
 }

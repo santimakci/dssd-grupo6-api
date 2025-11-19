@@ -3,6 +3,7 @@ import { TasksService } from './tasks.service';
 import { QueryPaginationDto } from 'src/common/dtos/pagination/query-pagination.dto';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthenticationGuard } from 'src/guards/authentication.guard';
+import { TaskQueryPaginationDto } from './dtos/task-pagination.dto';
 
 @ApiBearerAuth('jwt')
 @ApiTags('tasks')
@@ -16,7 +17,7 @@ export class TasksController {
   })
   @Version('1')
   @Get()
-  findPaginatedLocal(@Query() query: QueryPaginationDto) {
+  findPaginatedLocal(@Query() query: TaskQueryPaginationDto) {
     return this.tasksService.findPaginated(query);
   }
 
@@ -26,7 +27,7 @@ export class TasksController {
   })
   @Version('2')
   @Get()
-  findPaginated(@Query() query: QueryPaginationDto) {
+  findPaginated(@Query() query: TaskQueryPaginationDto) {
     return this.tasksService.findPaginated(query);
   }
 }

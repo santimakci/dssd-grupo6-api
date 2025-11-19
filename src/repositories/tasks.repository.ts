@@ -38,4 +38,25 @@ export class TasksRepository {
 
     return query.getManyAndCount();
   }
+
+  findPaginatedByProject(
+    projectId: string,
+    page: number,
+    limit: number,
+    search: string,
+  ) {
+    const query = this.tasksRepository
+      .createQueryBuilder('task')
+      .leftJoinAndSelect('task.project', 'project')
+      .where('project.id = :projectId', { projectId })
+      .orderBy('task.createdAt', 'DESC')
+      .skip(page * limit)
+      .take(limit);
+
+    if (search) {
+      query.andWhere('task.name LIKE :search', { search: `%${search}%` });
+    }
+
+    return query.getManyAndCount();
+  }
 }

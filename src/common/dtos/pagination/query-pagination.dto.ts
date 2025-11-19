@@ -7,24 +7,18 @@ export class QueryPaginationDto {
   })
   @IsNumber()
   @IsOptional()
-  page: number;
+  page?: number;
 
   @ApiPropertyOptional({
     description: 'Number of items per page (Optional)',
   })
   @IsNumber()
   @IsOptional()
-  limit: number;
+  limit?: number;
 
   @ApiPropertyOptional({
     description: 'Search term (Optional)',
   })
   @IsOptional()
   search?: string;
-
-  @ApiPropertyOptional({
-    description: 'Project ID',
-  })
-  @IsOptional()
-  projectId: string;
 }

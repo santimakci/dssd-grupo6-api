@@ -22,9 +22,6 @@ export class AuthService {
     if (!user) throw new BadRequestException('User not found');
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) throw new BadRequestException('Invalid password or user');
-    if (!user.roles.includes(UserRole.ADMIN)) {
-      throw new BadRequestException('User is not admin');
-    }
     const token = this.getAdminToken(user);
     const result = this.sendToken(user, token);
     return result;

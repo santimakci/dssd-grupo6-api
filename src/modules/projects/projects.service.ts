@@ -6,6 +6,8 @@ import { CreateProjectDto } from './dtos/create-project.dto';
 import { QueryPaginationDto } from 'src/common/dtos/pagination/query-pagination.dto';
 import { TasksRepository } from 'src/repositories/tasks.repository';
 import { OngsService } from '../ongs/ongs.service';
+import { TasksService } from '../tasks/tasks.service';
+import { TaskQueryPaginationDto } from '../tasks/dtos/task-pagination.dto';
 
 @Injectable()
 export class ProjectsService {
@@ -14,6 +16,7 @@ export class ProjectsService {
     private readonly projectsRepository: ProjectsRepository,
     private readonly tasksRepository: TasksRepository,
     private readonly ongsRepository: OngsService,
+    private readonly tasksService: TasksService,
   ) {}
 
   async createProject(body: CreateProjectDto) {
@@ -21,6 +24,7 @@ export class ProjectsService {
       name: body.ongName,
       email: body.ongMail,
     });
+    const { privateTasks, publicTasks } = this.separateTask(body);
     const project = await this.projectsRepository.save({
       name: body.name,
       description: body.description,
@@ -31,18 +35,33 @@ export class ProjectsService {
     });
     const response = await this.createProjectInBonita({
       ...body,
+      tasks: publicTasks,
       projectId: project.id,
     });
     project.caseId = response.caseId;
     await this.projectsRepository.save(project);
 
-    /* const tasks = body.tasks.map((task) => ({
+    const tasks = privateTasks.map((task) => ({
       ...task,
       projectId: project.id,
-    })); */
-    //await this.tasksRepository.bulkSave(tasks);
+    }));
+    await this.tasksRepository.bulkSave(tasks);
 
     return project;
+  }
+
+  private separateTask(body: CreateProjectDto) {
+    // iterate tasks if isPrivate is true make and array, if not make another array
+    const privateTasks = [];
+    const publicTasks = [];
+    for (const task of body.tasks) {
+      if (task.isPrivate) {
+        privateTasks.push(task);
+      } else {
+        publicTasks.push(task);
+      }
+    }
+    return { privateTasks, publicTasks };
   }
 
   async listProjectsPaginated(query: QueryPaginationDto) {
@@ -106,5 +125,12 @@ export class ProjectsService {
     } catch (error) {
       throw new BadRequestException(error.message || 'Unknown error occurred');
     }
+  }
+
+  async listTasksByProject(projectId: string, query: TaskQueryPaginationDto) {
+    return this.tasksService.findPaginated({
+      projectId,
+      ...query,
+    });
   }
 }

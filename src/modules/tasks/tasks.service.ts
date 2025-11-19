@@ -4,6 +4,7 @@ import { QueryPaginationDto } from 'src/common/dtos/pagination/query-pagination.
 import { BonitaApiService } from 'src/common/integrations/bonita-api/bonita-api.service';
 import { LoginDto } from '../auth/dto/login.dto';
 import { TasksRepository } from 'src/repositories/tasks.repository';
+import { TaskQueryPaginationDto } from './dtos/task-pagination.dto';
 
 @Injectable()
 export class TasksService {
@@ -13,27 +14,50 @@ export class TasksService {
     private readonly taskRepository: TasksRepository,
   ) {}
 
-  async findPaginated(query: QueryPaginationDto) {
+  async findPaginated(query: TaskQueryPaginationDto) {
     try {
-      const { search = null, page = 0, limit = 10, projectId = null } = query;
+      const { projectId = null, privateTask = true } = query;
+
       if (!projectId) {
         throw new BadRequestException('projectId is required');
       }
-      const loginDto: LoginDto = {
-        email: this.configService.get<string>('ADMIN_CLOUD_EMAIL'),
-        password: this.configService.get<string>('ADMIN_CLOUD_PASSWORD'),
-      };
-      const cookie = await this.bonitaApiService.loginBonita();
-      return this.bonitaApiService.listTasksFromCloud(
-        cookie,
-        page,
-        limit,
-        loginDto,
-        projectId,
-      );
+      if (privateTask) {
+        return this.findPaginatedPrivates(query);
+      } else {
+        return this.findPaginatedPublic(query);
+      }
     } catch (error) {
-      console.error('Error fetching paginated tasks:', error);
-      throw error;
+      throw new BadRequestException(error.message || 'Unknown error occurred');
     }
+  }
+
+  async findPaginatedPrivates(query: TaskQueryPaginationDto) {
+    const { search = null, page = 0, limit = 10, projectId = null } = query;
+    return this.taskRepository.findPaginatedByProject(
+      projectId,
+      page,
+      limit,
+      search,
+    );
+  }
+
+  async findPaginatedPublic(query: TaskQueryPaginationDto) {
+    const { search = null, page = 0, limit = 10, projectId = null } = query;
+    const loginDto: LoginDto = {
+      email: this.configService.get<string>('ADMIN_CLOUD_EMAIL'),
+      password: this.configService.get<string>('ADMIN_CLOUD_PASSWORD'),
+    };
+    const cookie = await this.bonitaApiService.loginBonita();
+    return this.bonitaApiService.listTasksFromCloud(
+      cookie,
+      page,
+      limit,
+      loginDto,
+      projectId,
+    );
+  }
+  catch(error) {
+    console.error('Error fetching paginated tasks:', error);
+    throw error;
   }
 }

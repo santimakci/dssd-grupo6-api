@@ -32,6 +32,10 @@ export class CreateTaskDto {
   @Expose()
   @IsDateString()
   endDate: Date;
+
+  @ApiProperty()
+  @Expose()
+  isPrivate: boolean;
 }
 
 export class CreateProjectDto {

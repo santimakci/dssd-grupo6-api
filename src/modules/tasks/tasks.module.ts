@@ -8,5 +8,6 @@ import { BonitaApiModule } from 'src/common/integrations/bonita-api/bonita.modul
   controllers: [TasksController],
   providers: [TasksService],
   imports: [RepositoriesModule, BonitaApiModule],
+  exports: [TasksService],
 })
 export class TasksModule {}

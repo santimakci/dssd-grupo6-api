@@ -2,9 +2,11 @@ import {
   Body,
   ClassSerializerInterceptor,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
+  Put,
   Query,
   UseGuards,
   UseInterceptors,
@@ -19,6 +21,7 @@ import { AdminGuard } from 'src/guards/admin.guard';
 import { Serialize } from 'src/common/helpers/serializer.interceptor';
 import { AuthenticationGuard } from 'src/guards/authentication.guard';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @ApiBearerAuth('jwt')
 @Controller('users')
@@ -90,5 +93,27 @@ export class UsersController {
       body.password,
       body.repeatPassword,
     );
+  }
+
+  @ApiOperation({ summary: 'Actualizar datos de un usuario' })
+  @ApiBody({ type: UpdateUserDto })
+  @Put(':id')
+  @Serialize(UserDto)
+  update(
+    @Param('id') id: string,
+    @Body(
+      new ValidationPipe({
+        transform: true,
+      }),
+    )
+    updateUserDto: UpdateUserDto,
+  ) {
+    return this.usersService.update(id, updateUserDto);
+  }
+
+  @ApiOperation({ summary: 'Eliminar un usuario (borrado virtual)' })
+  @Delete(':id')
+  delete(@Param('id') id: string) {
+    return this.usersService.delete(id);
   }
 }

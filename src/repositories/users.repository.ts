@@ -61,6 +61,14 @@ export class UsersRepository {
     return this.usersRepository.delete(id);
   }
 
+  virtualDelete(id: string) {
+    return this.usersRepository.update(id, {
+      isActive: false,
+      deletedAt: new Date(),
+      email: () => `CONCAT(email, NOW())`,
+    });
+  }
+
   findByRoles(roles: number[]) {
     return this.usersRepository
       .createQueryBuilder('user')

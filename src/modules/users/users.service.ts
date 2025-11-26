@@ -4,6 +4,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { SearchUserPaginatorDto } from './dto/search-paginator.dto';
 import { ListPaginatorDto } from './dto/list-paginator.dto';
 import * as bcrypt from 'bcrypt';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -72,6 +73,16 @@ export class UsersService {
     const hash = await this.generatePassword(password);
     return this.userRepository.update(id, { password: hash });
   }
+
+  async update(id: string, updateUserDto: UpdateUserDto) {
+    const user = await this.findOne(id);
+    return this.userRepository.update(id, { ...user, ...updateUserDto });
+  }
+
+  async delete(id: string) {
+    return this.userRepository.virtualDelete(id);
+  }
+
   private async generatePassword(password: string) {
     try {
       const numberOfSaltRounds = 5;

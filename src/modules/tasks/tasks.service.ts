@@ -6,6 +6,8 @@ import { LoginDto } from '../auth/dto/login.dto';
 import { TasksRepository } from 'src/repositories/tasks.repository';
 import { TaskQueryPaginationDto } from './dtos/task-pagination.dto';
 import { User } from 'src/entities';
+import { ProjectsRepository } from 'src/repositories/projects.repository';
+import { parseTsClassToJavaClass } from 'src/common/helpers/parsers/parse-tsclass-to-javaclass';
 
 @Injectable()
 export class TasksService {
@@ -13,6 +15,7 @@ export class TasksService {
     private readonly bonitaApiService: BonitaApiService,
     private readonly configService: ConfigService,
     private readonly taskRepository: TasksRepository,
+    private readonly projectRepository: ProjectsRepository,
   ) {}
 
   async findPaginated(query: TaskQueryPaginationDto) {
@@ -72,5 +75,82 @@ export class TasksService {
       loginDto.password,
       cookie,
     );
+  }
+
+  async finishTask(id: string, projectId: string, user: User) {
+    const localTask = await this.taskRepository.findOne(id);
+    if (localTask) {
+      await this.taskRepository.save({
+        id,
+        endDate: new Date(),
+        isFinished: true,
+      });
+    } else {
+      const cookie = await this.bonitaApiService.loginBonita();
+      const loginDto: LoginDto = {
+        email: this.configService.get<string>('ADMIN_CLOUD_EMAIL'),
+        password: this.configService.get<string>('ADMIN_CLOUD_PASSWORD'),
+      };
+      await this.bonitaApiService.finishTaskFromCloud(
+        id,
+        loginDto.email,
+        loginDto.password,
+        cookie,
+      );
+    }
+    await this.countPendingTasksAndFinishProject(projectId, user);
+  }
+
+  async countPendingTasksAndFinishProject(projectId: string, user: User) {
+    const localPending = await this.taskRepository.countPendingByProject(
+      projectId,
+    );
+
+    // Cloud pending tasks
+    const cookie = await this.bonitaApiService.loginBonita();
+    const loginDto: LoginDto = {
+      email: this.configService.get<string>('ADMIN_CLOUD_EMAIL'),
+      password: this.configService.get<string>('ADMIN_CLOUD_PASSWORD'),
+    };
+    const cloudCount = await this.bonitaApiService.countPendingTasksByProjectId(
+      projectId,
+      loginDto.email,
+      loginDto.password,
+      cookie,
+    );
+
+    const totalPending = localPending + (cloudCount?.total ?? 0);
+    if (totalPending === 0) {
+      await this.finishProject(projectId);
+    }
+  }
+
+  async finishProject(projectId: string) {
+    try {
+      const cookie = await this.bonitaApiService.loginBonita();
+      const project = await this.projectRepository.getProjectById(projectId);
+
+      const tasks = await this.bonitaApiService.listTasks(
+        cookie,
+        0,
+        50,
+        project.caseId,
+      );
+      const javaClassName = parseTsClassToJavaClass(typeof true);
+      await this.bonitaApiService.setVariableByCaseId(
+        project.caseId,
+        'allTasksWereFinished',
+        'true',
+        javaClassName,
+        cookie,
+      );
+      for (const task of tasks) {
+        if (task.name === 'Iniciar compromiso') {
+          await this.bonitaApiService.executeTask(task.id, {}, cookie);
+        }
+      }
+    } catch (error) {
+      throw new BadRequestException(error.message || 'Unknown error occurred');
+    }
   }
 }

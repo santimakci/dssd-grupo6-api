@@ -36,6 +36,7 @@ export class ProjectsService {
       endDate: body.endDate,
       country: body.country,
       ongId: ong.id,
+      createdById: user.id,
     });
     const response = await this.createProjectInBonita({
       ...body,
@@ -50,13 +51,11 @@ export class ProjectsService {
       projectId: project.id,
     }));
     await this.tasksRepository.bulkSave(tasks);
-    // Bonita tiene problemitas (como yo) para ejecutar las tareas inmediatamente despues de crear el proceso
-    //  por eso le pongo un timeout de 2 segundos
-    setTimeout(async () => {
-      await this.executeTasksInitialization(response.caseId, user);
-    }, 2000);
-    return project;
     // await this.executeTasksInitialization(response.caseId, user);
+    if (publicTasks.length === 0) {
+      this.startProjectImmediately(project.caseId);
+    }
+    return project;
   }
 
   private separateTask(body: CreateProjectDto) {
@@ -159,7 +158,6 @@ export class ProjectsService {
   }
 
   /* 
-  
   Steps:
   1- Get user by userId
   3- Get bonita user info 
@@ -168,28 +166,51 @@ export class ProjectsService {
   6- Execute tasks
   7- end
   */
-  async executeTasksInitialization(caseId: number, user: User) {
+  async startProjectImmediately(caseId: number) {
     try {
       const cookie = await this.bonitaApiService.loginBonita();
-      const users = await this.bonitaApiService.listUsersBonita(
-        cookie,
-        0,
-        50,
-        user.userBonita,
-      );
-      const bonitaUser = users.find((u) => u.userName === user.userBonita);
-      if (!bonitaUser) {
-        throw new BadRequestException('Bonita user not found');
-      }
-      const tasks = await this.bonitaApiService.listTasks(
-        cookie,
-        0,
-        50,
+      let tasks = await this.bonitaApiService.listTasks(cookie, 0, 50, caseId);
+      const javaClassName = parseTsClassToJavaClass(typeof true);
+      await this.bonitaApiService.setVariableByCaseId(
         caseId,
+        'allTaskWasTaken',
+        'true',
+        javaClassName,
+        cookie,
       );
 
       for (const task of tasks) {
-        await this.bonitaApiService.executeTask(task.id, {}, cookie);
+        // necesito esperar que apareza la tasks id con name Registrar compromiso con detalle y est[e en en estado ready para poder ejecutarla
+        // si no aparece espero 2 segundos y vuelvo a consultar las tareas
+        if (
+          task.name !== 'Registrar compromiso con detalle' ||
+          task.state !== 'ready'
+        ) {
+          let found = false;
+          for (let i = 0; i < 5; i++) {
+            await new Promise((resolve) => setTimeout(resolve, 5000));
+            tasks = await this.bonitaApiService.listTasks(
+              cookie,
+              0,
+              50,
+              caseId,
+            );
+            const taskCheck = tasks.find(
+              (t) =>
+                t.name === 'Registrar compromiso con detalle' &&
+                t.state === 'ready',
+            );
+            if (taskCheck) {
+              found = true;
+              await this.bonitaApiService.executeTask(taskCheck.id, {}, cookie);
+            }
+          }
+          if (!found) {
+            throw new BadRequestException(
+              'Task "Registrar compromiso con detalle" not found or not ready',
+            );
+          }
+        }
       }
     } catch (error) {
       throw new BadRequestException(

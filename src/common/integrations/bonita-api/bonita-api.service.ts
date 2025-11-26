@@ -367,4 +367,69 @@ export class BonitaApiService {
       throwHttpByStatus(error, 'Unknown error occurred');
     }
   }
+
+  async finishTaskFromCloud(
+    taskId: string,
+    emailCloud: string,
+    password: string,
+    cookie: string[],
+  ): Promise<void> {
+    const apiToken = this.parseApiToken(cookie);
+    try {
+      await firstValueFrom(
+        this.httpService.post(
+          `${this.apiUrl}/API/extension/finishTask`,
+          {
+            taskId,
+            emailCloud,
+            password,
+          },
+          {
+            headers: {
+              'X-Bonita-API-Token': apiToken,
+              Cookie: cookie,
+            },
+          },
+        ),
+      );
+    } catch (error) {
+      console.error('Error finishing task from Bonita Cloud API:', error);
+      throwHttpByStatus(error, 'Unknown error occurred');
+    }
+  }
+
+  async countPendingTasksByProjectId(
+    projectId: string,
+    emailCloud: string,
+    password: string,
+    cookie: string[],
+  ): Promise<{ total: number }> {
+    const apiToken = this.parseApiToken(cookie);
+    try {
+      return firstValueFrom(
+        this.httpService.post<{ total: number }>(
+          `${this.apiUrl}/API/extension/countTasks`,
+          {
+            projectId,
+            emailCloud,
+            password,
+          },
+          {
+            headers: {
+              'X-Bonita-API-Token': apiToken,
+              Cookie: cookie,
+            },
+          },
+        ),
+      ).then((response) => {
+        return response.data;
+      });
+    } catch (error) {
+      console.error(
+        'Error counting pending tasks from Bonita Cloud API:',
+        error,
+      );
+      throwHttpByStatus(error, 'Unknown error occurred');
+    }
+  }
 }

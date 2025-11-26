@@ -27,4 +27,9 @@ export class Task extends Base {
     type: 'date',
   })
   endDate: Date;
+
+  @Column({
+    default: false,
+  })
+  isFinished: boolean;
 }

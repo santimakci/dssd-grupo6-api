@@ -7,12 +7,10 @@ import {
   Query,
   Req,
   UseGuards,
-  ValidationPipe,
   Version,
 } from '@nestjs/common';
 import { TasksService } from './tasks.service';
-import { QueryPaginationDto } from 'src/common/dtos/pagination/query-pagination.dto';
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthenticationGuard } from 'src/guards/authentication.guard';
 import { TaskQueryPaginationDto } from './dtos/task-pagination.dto';
 
@@ -48,5 +46,17 @@ export class TasksController {
   @Post(':id/take')
   takeTask(@Param('id') id: string, @Req() { user }) {
     return this.tasksService.takeTask(id, user);
+  }
+
+  @ApiOperation({
+    summary: 'Marcar tarea como finalizada',
+  })
+  @Post(':id/finish')
+  finishTask(
+    @Param('id') id: string,
+    @Body() body: { projectId: string },
+    @Req() { user },
+  ) {
+    return this.tasksService.finishTask(id, body.projectId, user);
   }
 }

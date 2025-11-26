@@ -59,4 +59,12 @@ export class TasksRepository {
 
     return query.getManyAndCount();
   }
+
+  countPendingByProject(projectId: string) {
+    return this.tasksRepository
+      .createQueryBuilder('task')
+      .where('task.projectId = :projectId', { projectId })
+      .andWhere('task.isFinished IS NULL')
+      .getCount();
+  }
 }

@@ -10,6 +10,10 @@ export class ProjectsRepository {
     private readonly projectsRepository: Repository<Project>,
   ) {}
 
+  getProjectById(id: string) {
+    return this.projectsRepository.findOne({ where: { id } });
+  }
+
   create(data: Partial<Project>) {
     return this.projectsRepository.create(data);
   }

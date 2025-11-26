@@ -60,4 +60,12 @@ export class UsersRepository {
   delete(id: string) {
     return this.usersRepository.delete(id);
   }
+
+  findByRoles(roles: number[]) {
+    return this.usersRepository
+      .createQueryBuilder('user')
+      .where('user.roles && ARRAY[:...roles]::integer[]', { roles })
+      .andWhere('user.isActive = true')
+      .getMany();
+  }
 }

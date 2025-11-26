@@ -5,6 +5,7 @@ import { BonitaApiService } from 'src/common/integrations/bonita-api/bonita-api.
 import { LoginDto } from '../auth/dto/login.dto';
 import { TasksRepository } from 'src/repositories/tasks.repository';
 import { TaskQueryPaginationDto } from './dtos/task-pagination.dto';
+import { User } from 'src/entities';
 
 @Injectable()
 export class TasksService {
@@ -56,8 +57,20 @@ export class TasksService {
       projectId,
     );
   }
-  catch(error) {
-    console.error('Error fetching paginated tasks:', error);
-    throw error;
+
+  async takeTask(id: string, user: User) {
+    const cookie = await this.bonitaApiService.loginBonita();
+    const loginDto: LoginDto = {
+      email: this.configService.get<string>('ADMIN_CLOUD_EMAIL'),
+      password: this.configService.get<string>('ADMIN_CLOUD_PASSWORD'),
+    };
+    await this.bonitaApiService.takeTaskFromCloud(
+      id,
+      `${user.firstName} ${user.lastName}`,
+      user.email,
+      loginDto.email,
+      loginDto.password,
+      cookie,
+    );
   }
 }

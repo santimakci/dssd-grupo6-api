@@ -6,6 +6,8 @@ import { ListBonitaProcessesDto } from './dto/list-processes.dto';
 import { throwHttpByStatus } from 'src/common/helpers/http-error-mapper';
 import { ListTasksCloudDto } from './dto/list-tasks.dto';
 import { LoginDto } from 'src/modules/auth/dto/login.dto';
+import { ListBonitaTaskDto } from './dto/list-bonita-tasks.dto';
+import { ListUserDto } from './dto/list-users.dto';
 
 @Injectable()
 export class BonitaApiService {
@@ -184,6 +186,120 @@ export class BonitaApiService {
     return tokenCookie.split(';')[0].split('=')[1];
   }
 
+  /* TASKS */
+
+  async listTasks(
+    cookie: string[],
+    page: number,
+    count: number,
+    caseId: number,
+  ): Promise<ListBonitaTaskDto[]> {
+    try {
+      return firstValueFrom(
+        this.httpService.get<ListBonitaTaskDto[]>(
+          `${this.apiUrl}/API/bpm/task`,
+          {
+            headers: {
+              Cookie: cookie,
+            },
+            params: {
+              p: page,
+              c: count,
+              f: `caseId=${caseId}`,
+            },
+          },
+        ),
+      ).then((response) => {
+        return response.data;
+      });
+    } catch (error) {
+      console.error('Error listing tasks from Bonita API:', error);
+      throwHttpByStatus(error, 'Unknown error occurred');
+    }
+  }
+
+  async assignTaskToUser(
+    taskId: string,
+    assignedId: string,
+    cookie: string[],
+  ): Promise<void> {
+    const apiToken = this.parseApiToken(cookie);
+    try {
+      await firstValueFrom(
+        this.httpService.put(
+          `${this.apiUrl}/API/bpm/humanTask/${taskId}`,
+          {
+            assigned_id: assignedId,
+          },
+          {
+            headers: {
+              Cookie: cookie,
+              'X-Bonita-API-Token': apiToken,
+            },
+          },
+        ),
+      );
+    } catch (error) {
+      console.error('Error taking task in Bonita API:', error);
+      throwHttpByStatus(error, 'Unknown error occurred');
+    }
+  }
+
+  async listUsersBonita(
+    cookie: string[],
+    page: number,
+    count: number,
+    userName: string,
+  ): Promise<ListUserDto[]> {
+    try {
+      return firstValueFrom(
+        this.httpService.get<ListUserDto[]>(
+          `${this.apiUrl}/API/identity/user`,
+          {
+            headers: {
+              Cookie: cookie,
+            },
+            params: {
+              p: page,
+              c: count,
+              f: `userName=${userName}`,
+            },
+          },
+        ),
+      ).then((response) => {
+        return response.data;
+      });
+    } catch (error) {
+      console.error('Error listing users from Bonita API:', error);
+      throwHttpByStatus(error, 'Unknown error occurred');
+    }
+  }
+
+  async executeTask(
+    taskId: string,
+    body: any,
+    cookie: string[],
+  ): Promise<void> {
+    const apiToken = this.parseApiToken(cookie);
+    try {
+      await firstValueFrom(
+        this.httpService.post(
+          `${this.apiUrl}/API/bpm/userTask/${taskId}/execution?assign=true`,
+          body,
+          {
+            headers: {
+              Cookie: cookie,
+              'X-Bonita-API-Token': apiToken,
+            },
+          },
+        ),
+      );
+    } catch (error) {
+      console.error('Error executing task in Bonita API:', error);
+      throwHttpByStatus(error, 'Unknown error occurred');
+    }
+  }
+
   /* CUSTOM ENDPOINTS  */
 
   async listTasksFromCloud(
@@ -214,6 +330,40 @@ export class BonitaApiService {
       });
     } catch (error) {
       console.error('Error listing tasks from Bonita API:', error);
+      throwHttpByStatus(error, 'Unknown error occurred');
+    }
+  }
+
+  async takeTaskFromCloud(
+    taskId: string,
+    name: string,
+    email: string,
+    emailCloud: string,
+    password: string,
+    cookie: string[],
+  ): Promise<void> {
+    const apiToken = this.parseApiToken(cookie);
+    try {
+      await firstValueFrom(
+        this.httpService.post(
+          `${this.apiUrl}/API/extension/assignTask`,
+          {
+            taskId,
+            name,
+            email,
+            emailCloud,
+            password,
+          },
+          {
+            headers: {
+              'X-Bonita-API-Token': apiToken,
+              Cookie: cookie,
+            },
+          },
+        ),
+      );
+    } catch (error) {
+      console.error('Error taking task from Bonita Cloud API:', error);
       throwHttpByStatus(error, 'Unknown error occurred');
     }
   }

@@ -1,7 +1,18 @@
-import { Controller, Get, Query, UseGuards, Version } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  Req,
+  UseGuards,
+  ValidationPipe,
+  Version,
+} from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { QueryPaginationDto } from 'src/common/dtos/pagination/query-pagination.dto';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthenticationGuard } from 'src/guards/authentication.guard';
 import { TaskQueryPaginationDto } from './dtos/task-pagination.dto';
 
@@ -29,5 +40,13 @@ export class TasksController {
   @Get()
   findPaginated(@Query() query: TaskQueryPaginationDto) {
     return this.tasksService.findPaginated(query);
+  }
+
+  @ApiOperation({
+    summary: 'Comprometerse a completar una tarea/ pedido de colaboración',
+  })
+  @Post(':id/take')
+  takeTask(@Param('id') id: string, @Req() { user }) {
+    return this.tasksService.takeTask(id, user);
   }
 }

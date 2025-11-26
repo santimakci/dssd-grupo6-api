@@ -8,6 +8,9 @@ import { TasksRepository } from 'src/repositories/tasks.repository';
 import { OngsService } from '../ongs/ongs.service';
 import { TasksService } from '../tasks/tasks.service';
 import { TaskQueryPaginationDto } from '../tasks/dtos/task-pagination.dto';
+import { User } from 'src/entities';
+import { UsersRepository } from 'src/repositories';
+import { UserRole } from 'src/common/enums/user-role.enum';
 
 @Injectable()
 export class ProjectsService {
@@ -17,9 +20,10 @@ export class ProjectsService {
     private readonly tasksRepository: TasksRepository,
     private readonly ongsRepository: OngsService,
     private readonly tasksService: TasksService,
+    private readonly userRepository: UsersRepository,
   ) {}
 
-  async createProject(body: CreateProjectDto) {
+  async createProject(body: CreateProjectDto, user: User) {
     const ong = await this.ongsRepository.findOrCreate({
       name: body.ongName,
       email: body.ongMail,
@@ -46,8 +50,13 @@ export class ProjectsService {
       projectId: project.id,
     }));
     await this.tasksRepository.bulkSave(tasks);
-
+    // Bonita tiene problemitas (como yo) para ejecutar las tareas inmediatamente despues de crear el proceso
+    //  por eso le pongo un timeout de 2 segundos
+    setTimeout(async () => {
+      await this.executeTasksInitialization(response.caseId, user);
+    }, 2000);
     return project;
+    // await this.executeTasksInitialization(response.caseId, user);
   }
 
   private separateTask(body: CreateProjectDto) {
@@ -121,9 +130,71 @@ export class ProjectsService {
           'Error setting process variables: ' + (error.message || error),
         );
       }
+      await this.setEmailsForProcess(processInstanceId, cookie);
       return { message: 'Bonita process initiated', caseId: processInstanceId };
     } catch (error) {
       throw new BadRequestException(error.message || 'Unknown error occurred');
+    }
+  }
+
+  private async setEmailsForProcess(
+    processInstanceId: number,
+    cookie: string[],
+  ) {
+    const users = await this.userRepository.findByRoles([
+      UserRole.ONG_COLLABORATOR,
+    ]);
+    let emails = '';
+    for (const user of users) {
+      emails = emails ? `${emails},${user.email}` : user.email;
+    }
+    const javaClassName = parseTsClassToJavaClass(typeof emails);
+    await this.bonitaApiService.setVariableByCaseId(
+      processInstanceId,
+      'emailsTo',
+      emails,
+      javaClassName,
+      cookie,
+    );
+  }
+
+  /* 
+  
+  Steps:
+  1- Get user by userId
+  3- Get bonita user info 
+  4- get tasks by caseId
+  5- for each task assign to user
+  6- Execute tasks
+  7- end
+  */
+  async executeTasksInitialization(caseId: number, user: User) {
+    try {
+      const cookie = await this.bonitaApiService.loginBonita();
+      const users = await this.bonitaApiService.listUsersBonita(
+        cookie,
+        0,
+        50,
+        user.userBonita,
+      );
+      const bonitaUser = users.find((u) => u.userName === user.userBonita);
+      if (!bonitaUser) {
+        throw new BadRequestException('Bonita user not found');
+      }
+      const tasks = await this.bonitaApiService.listTasks(
+        cookie,
+        0,
+        50,
+        caseId,
+      );
+
+      for (const task of tasks) {
+        await this.bonitaApiService.executeTask(task.id, {}, cookie);
+      }
+    } catch (error) {
+      throw new BadRequestException(
+        'Error executing tasks initialization: ' + (error.message || error),
+      );
     }
   }
 

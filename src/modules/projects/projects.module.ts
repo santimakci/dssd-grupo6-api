@@ -5,10 +5,17 @@ import { BonitaApiModule } from 'src/common/integrations/bonita-api/bonita.modul
 import { RepositoriesModule } from 'src/repositories/repositories.module';
 import { OngsModule } from '../ongs/ongs.module';
 import { TasksModule } from '../tasks/tasks.module';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   controllers: [ProjectsController],
   providers: [ProjectsService],
-  imports: [BonitaApiModule, RepositoriesModule, OngsModule, TasksModule],
+  imports: [
+    BonitaApiModule,
+    RepositoriesModule,
+    OngsModule,
+    TasksModule,
+    UsersModule,
+  ],
 })
 export class ProjectsModule {}

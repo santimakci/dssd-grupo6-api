@@ -42,4 +42,7 @@ export class CreateUserDto {
   @Expose()
   @IsNotEmpty()
   roles: number[];
+
+  @Expose()
+  userBonita: string;
 }

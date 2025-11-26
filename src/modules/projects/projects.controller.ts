@@ -5,6 +5,7 @@ import {
   Param,
   Post,
   Query,
+  Req,
   UseGuards,
   ValidationPipe,
 } from '@nestjs/common';
@@ -26,6 +27,7 @@ export class ProjectsController {
   @ApiBody({ type: CreateProjectDto })
   @Post()
   create(
+    @Req() { user },
     @Body(
       new ValidationPipe({
         transform: true,
@@ -33,7 +35,7 @@ export class ProjectsController {
     )
     body: CreateProjectDto,
   ) {
-    return this.projectsService.createProject(body);
+    return this.projectsService.createProject(body, user);
   }
 
   @ApiOperation({ summary: 'Lista de proyectos paginada' })

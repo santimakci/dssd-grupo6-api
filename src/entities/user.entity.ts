@@ -33,4 +33,9 @@ export class User extends Base {
 
   @Column('int', { array: true, default: [UserRole.ADMIN] })
   roles: number[];
+
+  @Column({
+    nullable: true,
+  })
+  userBonita: string;
 }

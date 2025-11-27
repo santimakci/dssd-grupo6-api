@@ -398,6 +398,41 @@ export class BonitaApiService {
     }
   }
 
+  async countUntakenTasksByProjectId(
+    projectId: string,
+    emailCloud: string,
+    password: string,
+    cookie: string[],
+  ): Promise<{ total: number }> {
+    const apiToken = this.parseApiToken(cookie);
+    try {
+      return firstValueFrom(
+        this.httpService.post<{ total: number }>(
+          `${this.apiUrl}/API/extension/countUntakenTasks`,
+          {
+            projectId,
+            emailCloud,
+            password,
+          },
+          {
+            headers: {
+              'X-Bonita-API-Token': apiToken,
+              Cookie: cookie,
+            },
+          },
+        ),
+      ).then((response) => {
+        return response.data;
+      });
+    } catch (error) {
+      console.error(
+        'Error counting untaken tasks from Bonita Cloud API:',
+        error,
+      );
+      throwHttpByStatus(error, 'Unknown error occurred');
+    }
+  }
+
   async countPendingTasksByProjectId(
     projectId: string,
     emailCloud: string,

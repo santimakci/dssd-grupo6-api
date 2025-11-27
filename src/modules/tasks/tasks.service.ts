@@ -61,7 +61,7 @@ export class TasksService {
     );
   }
 
-  async takeTask(id: string, user: User) {
+  async takeTask(id: string, projectId: string, user: User) {
     const cookie = await this.bonitaApiService.loginBonita();
     const loginDto: LoginDto = {
       email: this.configService.get<string>('ADMIN_CLOUD_EMAIL'),
@@ -75,6 +75,7 @@ export class TasksService {
       loginDto.password,
       cookie,
     );
+    await this.countUntakenTasksAndFinishProject(projectId, user);
   }
 
   async finishTask(id: string, projectId: string, user: User) {
@@ -101,12 +102,46 @@ export class TasksService {
     await this.countPendingTasksAndFinishProject(projectId, user);
   }
 
+  async countUntakenTasksAndFinishProject(projectId: string, user: User) {
+    const cookie = await this.bonitaApiService.loginBonita();
+    const loginDto: LoginDto = {
+      email: this.configService.get<string>('ADMIN_CLOUD_EMAIL'),
+      password: this.configService.get<string>('ADMIN_CLOUD_PASSWORD'),
+    };
+    const response = await this.bonitaApiService.countUntakenTasksByProjectId(
+      projectId,
+      loginDto.email,
+      loginDto.password,
+      cookie,
+    );
+    const project = await this.projectRepository.getProjectById(projectId);
+    if (response.total === 0) {
+      const tasks = await this.bonitaApiService.listTasks(
+        cookie,
+        0,
+        50,
+        project.caseId,
+      );
+      const javaClassName = parseTsClassToJavaClass(typeof true);
+      await this.bonitaApiService.setVariableByCaseId(
+        project.caseId,
+        'allTaskWasTaken',
+        'true',
+        javaClassName,
+        cookie,
+      );
+      for (const task of tasks) {
+        if (task.name === 'Registrar compromiso con detalle') {
+          await this.bonitaApiService.executeTask(task.id, {}, cookie);
+        }
+      }
+    }
+  }
+
   async countPendingTasksAndFinishProject(projectId: string, user: User) {
     const localPending = await this.taskRepository.countPendingByProject(
       projectId,
     );
-
-    // Cloud pending tasks
     const cookie = await this.bonitaApiService.loginBonita();
     const loginDto: LoginDto = {
       email: this.configService.get<string>('ADMIN_CLOUD_EMAIL'),

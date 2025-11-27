@@ -48,6 +48,7 @@ export class ProjectsService {
 
     const tasks = privateTasks.map((task) => ({
       ...task,
+      createdById: user.id,
       projectId: project.id,
     }));
     await this.tasksRepository.bulkSave(tasks);
@@ -157,14 +158,9 @@ export class ProjectsService {
     );
   }
 
-  /* 
-  Steps:
-  1- Get user by userId
-  3- Get bonita user info 
-  4- get tasks by caseId
-  5- for each task assign to user
-  6- Execute tasks
-  7- end
+  /* **
+    Si todas las tareas son tomadas por la ONG creadora el proyecto no necesita esperar que se registren los compromisos
+    Así que directamente setea que no hay tareas sin tomar y ejecuta para pasar a la siguiente tarea del proceso
   */
   async startProjectImmediately(caseId: number) {
     try {
@@ -224,5 +220,27 @@ export class ProjectsService {
       projectId,
       ...query,
     });
+  }
+
+  async finishProject(projectId: string) {
+    try {
+      const cookie = await this.bonitaApiService.loginBonita();
+      const project = await this.projectsRepository.getProjectById(projectId);
+
+      const tasks = await this.bonitaApiService.listTasks(
+        cookie,
+        0,
+        50,
+        project.caseId,
+      );
+
+      for (const task of tasks) {
+        if (task.name === 'Finalizar proyecto') {
+          await this.bonitaApiService.executeTask(task.id, {}, cookie);
+        }
+      }
+    } catch (error) {
+      throw new BadRequestException(error.message || 'Unknown error occurred');
+    }
   }
 }

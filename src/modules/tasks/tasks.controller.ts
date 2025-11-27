@@ -31,21 +31,15 @@ export class TasksController {
   }
 
   @ApiOperation({
-    summary:
-      'Es v2 para cuando tengas que listar las tareas pasando por Bonita',
-  })
-  @Version('2')
-  @Get()
-  findPaginated(@Query() query: TaskQueryPaginationDto) {
-    return this.tasksService.findPaginated(query);
-  }
-
-  @ApiOperation({
     summary: 'Comprometerse a completar una tarea/ pedido de colaboración',
   })
   @Post(':id/take')
-  takeTask(@Param('id') id: string, @Req() { user }) {
-    return this.tasksService.takeTask(id, user);
+  takeTask(
+    @Param('id') id: string,
+    @Body() body: { projectId: string },
+    @Req() { user },
+  ) {
+    return this.tasksService.takeTask(id, body.projectId, user);
   }
 
   @ApiOperation({

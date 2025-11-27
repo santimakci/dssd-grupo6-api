@@ -64,7 +64,7 @@ export class TasksRepository {
     return this.tasksRepository
       .createQueryBuilder('task')
       .where('task.projectId = :projectId', { projectId })
-      .andWhere('task.isFinished IS NULL')
+      .andWhere('task.isFinished IS false')
       .getCount();
   }
 }

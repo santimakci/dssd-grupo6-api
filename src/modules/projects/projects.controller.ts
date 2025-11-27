@@ -57,4 +57,10 @@ export class ProjectsController {
   ) {
     return this.projectsService.listTasksByProject(projectId, query);
   }
+
+  @ApiOperation({ summary: 'Finalizar proyecto' })
+  @Post('/:projectId/finish')
+  finishProject(@Param('projectId') projectId: string) {
+    return this.projectsService.finishProject(projectId);
+  }
 }

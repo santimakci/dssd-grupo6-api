@@ -13,6 +13,7 @@ import { TasksService } from './tasks.service';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthenticationGuard } from 'src/guards/authentication.guard';
 import { TaskQueryPaginationDto } from './dtos/task-pagination.dto';
+import { QueryPaginationDto } from 'src/common/dtos/pagination/query-pagination.dto';
 
 @ApiBearerAuth('jwt')
 @ApiTags('tasks')
@@ -30,6 +31,16 @@ export class TasksController {
     return this.tasksService.findPaginated(query);
   }
 
+  @ApiOperation({
+    summary: 'Lista de tareas asignadas al usuario',
+  })
+  @Version('1')
+  @Get('assigned')
+  findAssignedTasks(@Req() { user }, @Query() query: QueryPaginationDto) {
+    return this.tasksService.findAssignedTasks(user, query);
+  }
+
+  @Version('1')
   @ApiOperation({
     summary: 'Comprometerse a completar una tarea/ pedido de colaboración',
   })

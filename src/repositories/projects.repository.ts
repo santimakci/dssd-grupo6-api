@@ -11,7 +11,10 @@ export class ProjectsRepository {
   ) {}
 
   getProjectById(id: string) {
-    return this.projectsRepository.findOne({ where: { id } });
+    return this.projectsRepository.findOne({
+      where: { id },
+      relations: ['ong'],
+    });
   }
 
   create(data: Partial<Project>) {

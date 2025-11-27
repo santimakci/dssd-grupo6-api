@@ -5,6 +5,8 @@ import { SearchUserPaginatorDto } from './dto/search-paginator.dto';
 import { ListPaginatorDto } from './dto/list-paginator.dto';
 import * as bcrypt from 'bcrypt';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UserRole } from 'src/common/enums/user-role.enum';
+import { User } from 'src/entities';
 
 @Injectable()
 export class UsersService {
@@ -21,6 +23,11 @@ export class UsersService {
     } catch (error) {
       console.error('Error generating password hash', error);
       throw new BadRequestException('Error al generar la contraseña');
+    }
+    if (!this.validateRoles(createUserDto.roles, UserRole.ADMIN)) {
+      throw new BadRequestException(
+        'Un usuario administrador no puede tener otros roles',
+      );
     }
     const user = await this.userRepository.create({
       ...createUserDto,
@@ -74,8 +81,23 @@ export class UsersService {
     return this.userRepository.update(id, { password: hash });
   }
 
-  async update(id: string, updateUserDto: UpdateUserDto) {
+  async update(id: string, updateUserDto: UpdateUserDto, userOwner: User) {
     const user = await this.findOne(id);
+    // Solo permitir cambiar roles si se le quita el rol ADMIN
+    const isTargetAdmin = user.roles?.includes(UserRole.ADMIN);
+    const newIncludesAdmin = updateUserDto.roles?.includes(UserRole.ADMIN);
+    if (isTargetAdmin && newIncludesAdmin) {
+      throw new BadRequestException(
+        'Para cambiar roles de un administrador, debe quitar el rol ADMIN',
+      );
+    }
+    if (!updateUserDto.roles || updateUserDto.roles.length === 0)
+      throw new BadRequestException('Los roles no pueden estar vacíos');
+    if (user.id === userOwner.id && updateUserDto.roles) {
+      throw new BadRequestException(
+        'Un usuario no puede cambiar sus propios roles',
+      );
+    }
     return this.userRepository.update(id, { ...user, ...updateUserDto });
   }
 
@@ -91,6 +113,13 @@ export class UsersService {
     } catch (error) {
       console.error('Error generating password hash', error);
       throw new BadRequestException('Error al generar la contraseña');
+    }
+  }
+
+  private validateRoles(roles: UserRole[], roleToValidate: UserRole) {
+    // si el rol a validar es ADMIN, solo puede estar ese rol
+    if (roleToValidate === UserRole.ADMIN) {
+      return roles.length === 1 && roles[0] === UserRole.ADMIN;
     }
   }
 }

@@ -22,4 +22,7 @@ export class UserDto extends BaseDto {
 
   @Expose()
   document: string;
+
+  @Expose()
+  userBonita: string;
 }

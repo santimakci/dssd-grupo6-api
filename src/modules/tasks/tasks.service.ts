@@ -35,6 +35,43 @@ export class TasksService {
     }
   }
 
+  async findAssignedTasks(user: User, query: QueryPaginationDto) {
+    try {
+      const { page = 0, limit = 10 } = query;
+      const cookie = await this.bonitaApiService.loginBonita();
+      const loginDto: LoginDto = {
+        email: this.configService.get<string>('ADMIN_CLOUD_EMAIL'),
+        password: this.configService.get<string>('ADMIN_CLOUD_PASSWORD'),
+      };
+      const response = await this.bonitaApiService.listAssignedTasksFromCloud(
+        cookie,
+        user.email,
+        loginDto.email,
+        loginDto.password,
+        page,
+        limit,
+      );
+      const results = [];
+      for (const task of response.data) {
+        const project = await this.projectRepository.getProjectById(
+          task.projectId,
+        );
+        results.push({
+          ...task,
+          project,
+        });
+      }
+      return {
+        data: results,
+        total: response.total,
+        page: response.page,
+        limit: response.limit,
+      };
+    } catch (error) {
+      throw new BadRequestException(error.message || 'Unknown error occurred');
+    }
+  }
+
   async findPaginatedPrivates(query: TaskQueryPaginationDto) {
     const { search = null, page = 0, limit = 10, projectId = null } = query;
     return this.taskRepository.findPaginatedByProject(

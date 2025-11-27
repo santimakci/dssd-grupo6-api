@@ -8,6 +8,7 @@ import {
   Post,
   Put,
   Query,
+  Req,
   UseGuards,
   UseInterceptors,
   ValidationPipe,
@@ -101,6 +102,7 @@ export class UsersController {
   @Serialize(UserDto)
   update(
     @Param('id') id: string,
+    @Req() { user },
     @Body(
       new ValidationPipe({
         transform: true,
@@ -108,7 +110,7 @@ export class UsersController {
     )
     updateUserDto: UpdateUserDto,
   ) {
-    return this.usersService.update(id, updateUserDto);
+    return this.usersService.update(id, updateUserDto, user);
   }
 
   @ApiOperation({ summary: 'Eliminar un usuario (borrado virtual)' })

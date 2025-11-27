@@ -334,6 +334,40 @@ export class BonitaApiService {
     }
   }
 
+  async listAssignedTasksFromCloud(
+    cookie: string[],
+    userEmail: string,
+    adminEmail: string,
+    adminPassword: string,
+    page = 0,
+    limit = 10,
+  ): Promise<ListTasksCloudDto> {
+    const apiToken = this.parseApiToken(cookie);
+    try {
+      return firstValueFrom(
+        this.httpService.post<ListTasksCloudDto>(
+          `${this.apiUrl}/API/extension/tasks/collaborator?page=${page}&limit=${limit}`,
+          {
+            emailCloud: adminEmail,
+            password: adminPassword,
+            email: userEmail,
+          },
+          {
+            headers: {
+              'X-Bonita-API-Token': apiToken,
+              Cookie: cookie,
+            },
+          },
+        ),
+      ).then((response) => {
+        return response.data;
+      });
+    } catch (error) {
+      console.error('Error listing assigned tasks from Bonita API:', error);
+      throwHttpByStatus(error, 'Unknown error occurred');
+    }
+  }
+
   async takeTaskFromCloud(
     taskId: string,
     name: string,

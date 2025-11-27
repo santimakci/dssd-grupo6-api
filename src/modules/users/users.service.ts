@@ -24,7 +24,10 @@ export class UsersService {
       console.error('Error generating password hash', error);
       throw new BadRequestException('Error al generar la contraseña');
     }
-    if (!this.validateRoles(createUserDto.roles, UserRole.ADMIN)) {
+    if (
+      createUserDto.roles?.includes(UserRole.ADMIN) &&
+      createUserDto.roles.length > 1
+    ) {
       throw new BadRequestException(
         'Un usuario administrador no puede tener otros roles',
       );
@@ -113,13 +116,6 @@ export class UsersService {
     } catch (error) {
       console.error('Error generating password hash', error);
       throw new BadRequestException('Error al generar la contraseña');
-    }
-  }
-
-  private validateRoles(roles: UserRole[], roleToValidate: UserRole) {
-    // si el rol a validar es ADMIN, solo puede estar ese rol
-    if (roleToValidate === UserRole.ADMIN) {
-      return roles.length === 1 && roles[0] === UserRole.ADMIN;
     }
   }
 }

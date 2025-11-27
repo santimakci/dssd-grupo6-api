@@ -10,6 +10,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { ProjectsModule } from './modules/projects/projects.module';
 import { OngsModule } from './modules/ongs/ongs.module';
 import { TasksModule } from './modules/tasks/tasks.module';
+import { KpisModule } from './modules/kpis/kpis.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { TasksModule } from './modules/tasks/tasks.module';
     ProjectsModule,
     OngsModule,
     TasksModule,
+    KpisModule,
   ],
   controllers: [AppController],
   providers: [AppService],

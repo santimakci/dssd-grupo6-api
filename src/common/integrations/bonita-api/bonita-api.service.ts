@@ -8,6 +8,7 @@ import { ListTasksCloudDto } from './dto/list-tasks.dto';
 import { LoginDto } from 'src/modules/auth/dto/login.dto';
 import { ListBonitaTaskDto } from './dto/list-bonita-tasks.dto';
 import { ListUserDto } from './dto/list-users.dto';
+import { KpisTasksDto } from './dto/kpis-tasks.dto';
 
 @Injectable()
 export class BonitaApiService {
@@ -496,6 +497,85 @@ export class BonitaApiService {
     } catch (error) {
       console.error(
         'Error counting pending tasks from Bonita Cloud API:',
+        error,
+      );
+      throwHttpByStatus(error, 'Unknown error occurred');
+    }
+  }
+
+  async listArchivedCases(
+    cookie: string[],
+    page = 0,
+    count = 10,
+  ): Promise<any> {
+    try {
+      return firstValueFrom(
+        this.httpService.get<any>(`${this.apiUrl}/API/bpm/archivedCase`, {
+          headers: {
+            Cookie: cookie,
+          },
+          params: {
+            p: page,
+            c: count,
+          },
+        }),
+      ).then((response) => {
+        return response.data;
+      });
+    } catch (error) {
+      console.error('Error listing archived cases from Bonita API:', error);
+      throwHttpByStatus(error, 'Unknown error occurred');
+    }
+  }
+
+  async listOpenCases(cookie: string[], page = 0, count = 10): Promise<any> {
+    try {
+      return firstValueFrom(
+        this.httpService.get<any>(`${this.apiUrl}/API/bpm/case`, {
+          headers: {
+            Cookie: cookie,
+          },
+          params: {
+            p: page,
+            c: count,
+          },
+        }),
+      ).then((response) => {
+        return response.data;
+      });
+    } catch (error) {
+      console.error('Error listing open cases from Bonita API:', error);
+      throwHttpByStatus(error, 'Unknown error occurred');
+    }
+  }
+
+  async getTasksKpis(
+    cookie: string[],
+    email: string,
+    password: string,
+  ): Promise<KpisTasksDto> {
+    const apiToken = this.parseApiToken(cookie);
+    try {
+      return firstValueFrom(
+        this.httpService.post<KpisTasksDto>(
+          `${this.apiUrl}/API/extension/tasks/kpis`,
+          {
+            email,
+            password,
+          },
+          {
+            headers: {
+              'X-Bonita-API-Token': apiToken,
+              Cookie: cookie,
+            },
+          },
+        ),
+      ).then((response) => {
+        return response.data;
+      });
+    } catch (error) {
+      console.error(
+        'Error counting untaken tasks from Bonita Cloud API:',
         error,
       );
       throwHttpByStatus(error, 'Unknown error occurred');

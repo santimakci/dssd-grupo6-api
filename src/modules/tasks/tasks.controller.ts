@@ -7,6 +7,7 @@ import {
   Query,
   Req,
   UseGuards,
+  ValidationPipe,
   Version,
 } from '@nestjs/common';
 import { TasksService } from './tasks.service';
@@ -27,7 +28,14 @@ export class TasksController {
   })
   @Version('1')
   @Get()
-  findPaginatedLocal(@Query() query: TaskQueryPaginationDto) {
+  findPaginatedLocal(
+    @Query(
+      new ValidationPipe({
+        transform: true,
+      }),
+    )
+    query: TaskQueryPaginationDto,
+  ) {
     return this.tasksService.findPaginated(query);
   }
 

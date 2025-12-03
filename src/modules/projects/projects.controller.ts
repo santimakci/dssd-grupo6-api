@@ -15,6 +15,7 @@ import { QueryPaginationDto } from 'src/common/dtos/pagination/query-pagination.
 import { CreateProjectDto } from './dtos/create-project.dto';
 import { AuthenticationGuard } from 'src/guards/authentication.guard';
 import { TaskQueryPaginationDto } from '../tasks/dtos/task-pagination.dto';
+import { CreateProjectObservationDto } from './dtos/create-project-observations.dto';
 
 @ApiBearerAuth('jwt')
 @ApiTags('projects')
@@ -62,5 +63,45 @@ export class ProjectsController {
   @Post('/:projectId/finish')
   finishProject(@Param('projectId') projectId: string) {
     return this.projectsService.finishProject(projectId);
+  }
+
+  @ApiOperation({ summary: 'Crear observaciones para un proyecto' })
+  @Post('/:projectId/observations')
+  @ApiBody({ type: CreateProjectObservationDto })
+  createObservations(
+    @Param('projectId') projectId: string,
+    @Req() { user },
+    @Body(
+      new ValidationPipe({
+        transform: true,
+      }),
+    )
+    body: CreateProjectObservationDto,
+  ) {
+    return this.projectsService.createObservations(projectId, body, user);
+  }
+
+  @ApiOperation({ summary: 'Listado de reviews' })
+  @Get(':projectId/reviews')
+  listReviews(
+    @Param('projectId') projectId: string,
+    @Query() query: QueryPaginationDto,
+  ) {
+    return this.projectsService.listReviewsByProject(projectId, query);
+  }
+
+  @ApiOperation({ summary: 'Listado de observations' })
+  @Get('reviews/:reviewId/observations/')
+  listObservations(
+    @Param('reviewId') reviewId: string,
+    @Query() query: QueryPaginationDto,
+  ) {
+    return this.projectsService.listObservationsByReview(reviewId, query);
+  }
+
+  @ApiOperation({ summary: 'Marcar una observación como finalizada' })
+  @Post('/observations/:observationId/finish')
+  finishObservation(@Param('observationId') observationId: string) {
+    return this.projectsService.finishObservation(observationId);
   }
 }

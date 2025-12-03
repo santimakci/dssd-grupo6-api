@@ -10,7 +10,7 @@ import { AuthenticationGuard } from 'src/guards/authentication.guard';
 export class KpisController {
   constructor(private readonly kpisService: KpisService) {}
 
-  @Get('/cases')
+  @Get('')
   totalCases() {
     return this.kpisService.totalCases();
   }

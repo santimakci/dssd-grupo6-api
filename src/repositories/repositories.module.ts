@@ -6,6 +6,10 @@ import { OngsRepository } from './ongs.repository';
 import { ProjectsRepository } from './projects.repository';
 import { Ong, Project, Task } from 'src/entities';
 import { TasksRepository } from './tasks.repository';
+import { ProjectObservation } from 'src/entities/project-observations.entity';
+import { ProjectsObservationsRepository } from './project-observations.repository';
+import { ProjectReview } from 'src/entities/project-review.entity';
+import { ProjectsReviewsRepository } from './project-reviews.repository';
 
 @Module({
   providers: [
@@ -13,13 +17,26 @@ import { TasksRepository } from './tasks.repository';
     UsersRepository,
     ProjectsRepository,
     OngsRepository,
+    ProjectsObservationsRepository,
+    ProjectsReviewsRepository,
   ],
-  imports: [TypeOrmModule.forFeature([User, Task, Project, Ong])],
+  imports: [
+    TypeOrmModule.forFeature([
+      User,
+      Task,
+      Project,
+      Ong,
+      ProjectObservation,
+      ProjectReview,
+    ]),
+  ],
   exports: [
     TasksRepository,
     UsersRepository,
     ProjectsRepository,
     OngsRepository,
+    ProjectsObservationsRepository,
+    ProjectsReviewsRepository,
   ],
 })
 export class RepositoriesModule {}

@@ -153,6 +153,7 @@ export class TasksService {
     );
     const project = await this.projectRepository.getProjectById(projectId);
     if (response.total === 0) {
+      await this.projectRepository.update(projectId, { canBeFinished: true });
       const tasks = await this.bonitaApiService.listTasks(
         cookie,
         0,
@@ -193,6 +194,9 @@ export class TasksService {
 
     const totalPending = localPending + (cloudCount?.total ?? 0);
     if (totalPending === 0) {
+      await this.projectRepository.update(projectId, {
+        canBeFinished: true,
+      });
       await this.finishProject(projectId);
     }
   }
@@ -201,7 +205,7 @@ export class TasksService {
     try {
       const cookie = await this.bonitaApiService.loginBonita();
       const project = await this.projectRepository.getProjectById(projectId);
-
+      await this.projectRepository.update(projectId, { isFinished: true });
       const tasks = await this.bonitaApiService.listTasks(
         cookie,
         0,

@@ -11,6 +11,10 @@ import { TaskQueryPaginationDto } from '../tasks/dtos/task-pagination.dto';
 import { User } from 'src/entities';
 import { UsersRepository } from 'src/repositories';
 import { UserRole } from 'src/common/enums/user-role.enum';
+import { ProjectsObservationsRepository } from 'src/repositories/project-observations.repository';
+import { ProjectsReviewsRepository } from 'src/repositories/project-reviews.repository';
+import { CreateProjectObservationDto } from './dtos/create-project-observations.dto';
+import { ReviewsStatus } from 'src/common/enums/reviews-status.enum';
 
 @Injectable()
 export class ProjectsService {
@@ -21,6 +25,8 @@ export class ProjectsService {
     private readonly ongsRepository: OngsService,
     private readonly tasksService: TasksService,
     private readonly userRepository: UsersRepository,
+    private readonly projectsObservationsRepository: ProjectsObservationsRepository,
+    private readonly projectsReviewsRepository: ProjectsReviewsRepository,
   ) {}
 
   async createProject(body: CreateProjectDto, user: User) {
@@ -242,5 +248,111 @@ export class ProjectsService {
     } catch (error) {
       throw new BadRequestException(error.message || 'Unknown error occurred');
     }
+  }
+
+  async createObservations(
+    projectId: string,
+    body: CreateProjectObservationDto,
+    user: User,
+  ) {
+    try {
+      const project = await this.projectsRepository.getProjectById(projectId);
+      if (!project) {
+        throw new BadRequestException('Project not found');
+      }
+      const cookie = await this.bonitaApiService.loginBonita();
+      /* TODO: desharcodear el nombre del proceso ponerlo en el .env o en un enum o en la base de datos */
+      const processId = await this.bonitaApiService.getProcessIdByName(
+        'Proceso de ofrecimiento de compromiso',
+        cookie,
+      );
+      if (!processId) {
+        throw new BadRequestException('Bonita process not found');
+      }
+      const processInstanceId = await this.bonitaApiService.initiateProcessById(
+        processId,
+        cookie,
+      );
+
+      const review = await this.projectsReviewsRepository.save({
+        projectId: project.id,
+        caseId: processInstanceId,
+        isFinished: false,
+        createdById: user.id,
+      });
+
+      const observations = body.observations.map((observation) => ({
+        observation,
+        reviewId: review.id,
+        isFinished: false,
+        createdById: user.id,
+      }));
+      return this.projectsObservationsRepository.bulkSave(observations);
+    } catch (error) {
+      throw new BadRequestException(
+        'Error creating project observations: ' + (error.message || error),
+      );
+    }
+  }
+
+  async listReviewsByProject(projectId: string, query: QueryPaginationDto) {
+    const { page = 0, limit = 10 } = query;
+    const [reviews, total] =
+      await this.projectsReviewsRepository.findAllByProjectId(
+        projectId,
+        page,
+        limit,
+      );
+    return {
+      data: reviews,
+      total,
+      page,
+      limit,
+    };
+  }
+
+  async listObservationsByReview(reviewId: string, query: QueryPaginationDto) {
+    const { page = 0, limit = 10 } = query;
+    const [observations, total] =
+      await this.projectsObservationsRepository.findAllByReviewId(
+        reviewId,
+        page,
+        limit,
+      );
+    return {
+      data: observations,
+      total,
+      page,
+      limit,
+    };
+  }
+
+  async finishObservation(observationId: string) {
+    const observation = await this.projectsObservationsRepository.findOneById(
+      observationId,
+    );
+    if (!observation) {
+      throw new BadRequestException('Observation not found');
+    }
+    if (observation.isFinished) {
+      throw new BadRequestException('Observation already finished');
+    }
+    await this.projectsObservationsRepository.update(observation.id, {
+      isFinished: true,
+      endDate: new Date(),
+    });
+    const pendingObservations =
+      await this.projectsObservationsRepository.countUnfinishedByProjectId(
+        observation.reviewId,
+      );
+    if (pendingObservations === 0) {
+      await this.projectsReviewsRepository.save({
+        id: observation.reviewId,
+        isFinished: true,
+        status: ReviewsStatus.COMPLETED,
+        endDate: new Date(),
+      });
+    }
+    return observation;
   }
 }

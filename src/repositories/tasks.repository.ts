@@ -67,4 +67,18 @@ export class TasksRepository {
       .andWhere('task.isFinished IS false')
       .getCount();
   }
+
+  countFinishedTasksLocally() {
+    return this.tasksRepository
+      .createQueryBuilder('task')
+      .where('task.isFinished IS true')
+      .getCount();
+  }
+
+  countPendingTasksLocally() {
+    return this.tasksRepository
+      .createQueryBuilder('task')
+      .where('task.isFinished IS false')
+      .getCount();
+  }
 }

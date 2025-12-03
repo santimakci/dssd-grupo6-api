@@ -2,6 +2,7 @@ import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
 import { Base } from './base.entity';
 import { Task } from './task.entity';
 import { Ong } from './ong.entity';
+import { ProjectReview } from './project-review.entity';
 
 @Entity({
   name: 'projects',
@@ -29,6 +30,11 @@ export class Project extends Base {
   @OneToMany(() => Task, (task) => task.project, { cascade: true })
   tasks: Task[];
 
+  @OneToMany(() => ProjectReview, (projectReview) => projectReview.project, {
+    cascade: true,
+  })
+  reviews: ProjectReview[];
+
   @Column()
   ongId: string;
 
@@ -40,4 +46,14 @@ export class Project extends Base {
     nullable: true,
   })
   caseId: number;
+
+  @Column({
+    default: false,
+  })
+  isFinished: boolean;
+
+  @Column({
+    default: false,
+  })
+  canBeFinished: boolean;
 }

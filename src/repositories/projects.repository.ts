@@ -43,4 +43,19 @@ export class ProjectsRepository {
 
     return query.getManyAndCount();
   }
+
+  update(id: string, data: Partial<Project>) {
+    return this.projectsRepository.update(id, data);
+  }
+
+  getTopCountriesWithMostProjects(limit: number) {
+    return this.projectsRepository
+      .createQueryBuilder('project')
+      .select('project.country', 'country')
+      .addSelect('COUNT(project.id)', 'count')
+      .groupBy('project.country')
+      .orderBy('count', 'DESC')
+      .limit(limit)
+      .getRawMany();
+  }
 }

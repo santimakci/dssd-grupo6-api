@@ -23,7 +23,7 @@ export class ProjectObservation extends Base {
     () => ProjectReview,
     (projectReview) => projectReview.projectObservations,
   )
-  projectReview: ProjectReview;
+  review: ProjectReview;
 
   @Column({
     comment: 'Id de instancia de bonita',

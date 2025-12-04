@@ -1,5 +1,5 @@
 export enum ReviewsStatus {
-  PENDING = 'PENDING',
-  IN_PROGRESS = 'IN_PROGRESS',
-  COMPLETED = 'COMPLETED',
+  PENDING = 'PENDING', // en proceso de realizar las observaciones
+  COMPLETED = 'COMPLETED', // todas las observaciones realizadas
+  FINISHED = 'FINISHED', // revisión finalizada
 }

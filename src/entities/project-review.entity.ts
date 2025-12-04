@@ -33,7 +33,7 @@ export class ProjectReview extends Base {
 
   @OneToMany(
     () => ProjectObservation,
-    (projectObservation) => projectObservation.projectReview,
+    (projectObservation) => projectObservation.review,
   )
   projectObservations: ProjectObservation[];
 

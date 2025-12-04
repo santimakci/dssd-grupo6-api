@@ -11,7 +11,10 @@ export class ProjectsObservationsRepository {
   ) {}
 
   findOneById(id: string) {
-    return this.projectsObservationsRepository.findOneBy({ id });
+    return this.projectsObservationsRepository.findOne({
+      where: { id },
+      relations: ['review'],
+    });
   }
 
   bulkSave(observations: Partial<ProjectObservation>[]) {

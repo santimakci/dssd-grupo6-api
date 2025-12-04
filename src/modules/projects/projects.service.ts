@@ -287,7 +287,11 @@ export class ProjectsService {
         isFinished: false,
         createdById: user.id,
       }));
-      return this.projectsObservationsRepository.bulkSave(observations);
+      await this.projectsObservationsRepository.bulkSave(observations);
+      await this.executeTasksInitialization(
+        processInstanceId,
+        project.ong.email,
+      );
     } catch (error) {
       throw new BadRequestException(
         'Error creating project observations: ' + (error.message || error),
@@ -348,11 +352,99 @@ export class ProjectsService {
     if (pendingObservations === 0) {
       await this.projectsReviewsRepository.save({
         id: observation.reviewId,
-        isFinished: true,
         status: ReviewsStatus.COMPLETED,
         endDate: new Date(),
       });
+      await this.finishObservationsTask(observation.review.caseId);
     }
     return observation;
+  }
+
+  async finishReview(reviewId: string) {
+    const review = await this.projectsReviewsRepository.findOneById(reviewId);
+    if (!review) {
+      throw new BadRequestException('Review not found');
+    }
+    if (review.isFinished || review.status != ReviewsStatus.COMPLETED) {
+      throw new BadRequestException('Review cannot be finished');
+    }
+
+    await this.projectsReviewsRepository.save({
+      id: reviewId,
+      isFinished: true,
+      status: ReviewsStatus.FINISHED,
+      endDate: new Date(),
+    });
+    await this.executeTaskFinish(review.caseId);
+    return review;
+  }
+
+  private async executeTaskFinish(caseId: number) {
+    try {
+      const cookie = await this.bonitaApiService.loginBonita();
+      const tasks = await this.bonitaApiService.listTasks(
+        cookie,
+        0,
+        50,
+        caseId,
+      );
+      for (const task of tasks) {
+        if (task.name === 'Revisión de observaciones') {
+          await this.bonitaApiService.executeTask(task.id, {}, cookie);
+        }
+      }
+    } catch (error) {
+      throw new BadRequestException(
+        'Error executing finish review task: ' + (error.message || error),
+      );
+    }
+  }
+
+  private async executeTasksInitialization(caseId: number, ongEmail: string) {
+    if (!caseId) {
+      throw new BadRequestException('Case ID is required to execute tasks');
+    }
+    const cookie = await this.bonitaApiService.loginBonita();
+    await this.bonitaApiService.setVariableByCaseId(
+      caseId,
+      'ongEmail',
+      ongEmail || '',
+      parseTsClassToJavaClass(typeof ongEmail),
+      cookie,
+    );
+    const tasks = await this.bonitaApiService.listTasks(cookie, 0, 50, caseId);
+    for (const task of tasks) {
+      if (task.name === 'Carga de observaciones y mejoras') {
+        await this.bonitaApiService.executeTask(task.id, {}, cookie);
+      }
+    }
+  }
+
+  private async finishObservationsTask(caseId: number) {
+    try {
+      const cookie = await this.bonitaApiService.loginBonita();
+      await this.bonitaApiService.setVariableByCaseId(
+        caseId,
+        'observationsFinished',
+        'true',
+        parseTsClassToJavaClass(typeof true),
+        cookie,
+      );
+      const tasks = await this.bonitaApiService.listTasks(
+        cookie,
+        0,
+        50,
+        caseId,
+      );
+      for (const task of tasks) {
+        if (task.name === 'Corrección de observaciones') {
+          await this.bonitaApiService.executeTask(task.id, {}, cookie);
+        }
+      }
+    } catch (error) {
+      throw new BadRequestException(
+        'Error finishing observations task: ' + (error.message || error),
+      );
+    }
   }
 }

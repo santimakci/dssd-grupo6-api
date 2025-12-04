@@ -23,4 +23,11 @@ export class ProjectsReviewsRepository {
       .take(limit)
       .getManyAndCount();
   }
+
+  findOneById(id: string) {
+    return this.projectsReviewsRepository.findOne({
+      where: { id },
+      relations: ['project'],
+    });
+  }
 }

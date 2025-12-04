@@ -1,8 +1,9 @@
-import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 import { Base } from './base.entity';
 import { Task } from './task.entity';
 import { Ong } from './ong.entity';
 import { ProjectReview } from './project-review.entity';
+import { User } from './user.entity';
 
 @Entity({
   name: 'projects',
@@ -40,6 +41,10 @@ export class Project extends Base {
 
   @ManyToOne(() => Ong, (ong) => ong.projects)
   ong: Ong;
+
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'createdById' })
+  owner: User;
 
   @Column({
     comment: 'Id de instancia de bonita',

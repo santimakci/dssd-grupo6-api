@@ -2,7 +2,9 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
   Param,
+  Patch,
   Post,
   Query,
   Req,
@@ -100,8 +102,16 @@ export class ProjectsController {
   }
 
   @ApiOperation({ summary: 'Marcar una observación como finalizada' })
+  @HttpCode(200)
   @Post('/observations/:observationId/finish')
   finishObservation(@Param('observationId') observationId: string) {
     return this.projectsService.finishObservation(observationId);
+  }
+
+  @ApiOperation({ summary: 'Finalizar una revisión' })
+  @HttpCode(200)
+  @Patch('/reviews/:reviewId/finish')
+  finishReview(@Param('reviewId') reviewId: string) {
+    return this.projectsService.finishReview(reviewId);
   }
 }
